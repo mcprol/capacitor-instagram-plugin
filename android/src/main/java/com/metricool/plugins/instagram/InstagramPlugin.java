@@ -1,9 +1,11 @@
 package com.metricool.plugins.instagram;
 
-import android.Manifest;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.NativePlugin;
@@ -50,7 +52,7 @@ public class InstagramPlugin extends Plugin {
             return;
         };
 
-        Log.d(LOGTAG, "shareLocalMedia: '" + medias + "', '" + mediaType + "', '" + target);
+        Log.d(LOGTAG, "shareLocalMedia: '" + medias + "', '" + mediaType + "', '" + target + "'");
         shareLocalMedia(call, medias, mediaType, target);
     }
 
@@ -96,14 +98,14 @@ public class InstagramPlugin extends Plugin {
 
                 for (int i=0; i<medias.length(); i++) {
                     File file = new File(medias.getString(i));
-                    Uri uri = Uri.fromFile(file);
+                    Uri uri = getUriForFile(file);
                     uris.add(uri);
                 }
                 shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
                 shareIntent.setType(mediaType + "/*");
             } else {
                 File file = new File(medias.getString(0));
-                Uri uri = Uri.fromFile(file);
+                Uri uri = getUriForFile(file);
 
                 shareIntent.setType(mediaType + "/*");
                 shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
@@ -117,5 +119,16 @@ public class InstagramPlugin extends Plugin {
         } catch (Exception e) {
             call.error("Internal error: " + e.getMessage());
         }
+    }
+
+    private Uri getUriForFile(File file) {
+        //Uri uri = Uri.fromFile(file);
+        AppCompatActivity activity = this.getActivity();
+
+        // Really not clean, as it depends on the package in our MainActivity program.
+        String authority = "com.ionicframework.metricool185346.fileprovider";
+
+        Uri uri = FileProvider.getUriForFile(activity, authority, file);
+        return uri;
     }
 }
